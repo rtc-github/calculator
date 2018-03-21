@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">  
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> <!--This needs to be above jQuery-->
+
+<style>
+    body {
+        background: grey;
+    }
+    
+    .jumbotron {
+        margin-top: 50px;
+        padding: 15px 15px 20px 15px;
+        background-color: #dfd8d0;
+        border-radius: 25px;
+        border: 2px solid #908b85;
+        box-shadow: 7px 10px 34px 1px rgba(0, 0, 0, 0.68), inset -1px -6px 12px 0.1px #89847e;
+    }
+    
+    .btn {
+        border-radius: 10px;
+        margin: 5px 8px 5px 8px;
+        box-shadow: 0px 2px;
+        background-color: #3a3a3a;
+        color: white;
+        font-weight: bold;
+        box-shadow: 0px 3px 0px 0px #222121, inset -1px -3px 10px 1px #515151;
+
+    }
+    
+    .btn:active {
+        transform: translate(0px, 3px);
+     }
+
+    .buttons {
+        padding-right: 0px;
+        padding-left: 15px;
+    }
+    
+    .zero {
+        width: 115px;
+    }
+    
+    .equal {
+        height: 85px;
+        float: right;
+        margin-right: 25px;
+    }
+    
+    .ce, .ac {
+        background: maroon;
+        color: white;
+        box-shadow: 0px 3px 0px 0px maroon, inset -1px -3px 10px 1px maroon;
+    }
+    
+    .output {
+        background-color: #c3c2ab;
+        border-radius: 10px;
+        border: 2px solid #908b85;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        width: 85%;
+        margin-left: 21px;
+    }
+</style>
+    
+<script>
+//equal button function 
+function calculate(num) {
+    var nonIntegers = /\+|\-|\÷|\×|\./g;
+    num = num.replace('×','*').replace('÷','/');
+    if (num[num.length-1].match(nonIntegers)) {
+        return eval(num.slice(0,num.length-1));
+    }
+    return eval(num);
+}     
+    
+$(document).ready(function() {
+//Fix digit limit and DONE
+var minorArray = [];    
+    
+  $(".btn").click(function() {
+    var digits = /\d/g;
+    var operators = /\+|\-|\÷|\×/g;  
+    var decimal = /\./g;  
+    var equal = /\=/g;
+    var zero = /0/g;
+          
+    if ($(".main").html().length > 8 || $(".minor").html().length > 20) {
+      $(".main").html("0");
+      minorArray = [];
+    //if button clicked is an integer
+    } else if ($(document.activeElement).html().match(digits)) {
+        //if zero is pressed and minorArray is empty
+        if ($(document.activeElement).html().match(zero) && minorArray.length < 1) {
+          var x = 9;
+        //if zero is pressed and previous operator is zero, deny zero
+        } else if ($(document.activeElement).html().match(zero) && minorArray[minorArray.length-1].match(operators)) {
+          var x = 9;
+        }
+        //if main output is an operator or a single zero
+        else if ($(".main").html().match(operators) || $(".main").html().match(/^0$/g)) {
+          //main output will clear and show that button's digit
+          $(".main").html($(document.activeElement).html());
+          //and, push that digit into minorArray
+          minorArray.push($(document.activeElement).html());
+        //else if main output has equal sign
+        } else if ($(".minor").html().match(equal)) {
+          $(".main").html($(document.activeElement).html());
+          minorArray = [$(document.activeElement).html()];
+        //else if main output has digits there not as a result of an equal    
+        } else {
+          //just append button's digit to the output    
+          $(".main").append($(document.activeElement).html());
+          //and, push digit into minorArray
+          minorArray.push($(document.activeElement).html());
+        }
+    //if the button clicked is an operator  
+    } else if ($(document.activeElement).html().match(operators)) {
+        //if minorArray has equal sign, result is last element.  On operator click,  mArray start over with result as first element in mArray
+        if (minorArray.join('').match(equal)) {
+          $(".main").html($(document.activeElement).html());
+          minorArray = [minorArray[minorArray.length-1], $(document.activeElement).html()];
+        //if there is no equal sign
+        } else if (minorArray.join('').match(equal) === null) {
+          //if the last character is a number
+          if (minorArray[minorArray.length-1].match(digits) !== null) {
+            //main should be operator, minor should be the whole thing plus operator
+            $(".main").html($(document.activeElement).html());
+            minorArray.push($(document.activeElement).html());
+          //if the last character is an operator
+          } 
+        }
+    //if button is decimal
+    } else if ($(document.activeElement).html().match(decimal)) {
+      //if last index of minor array is not a decimal
+        if (minorArray[minorArray.length-1].match(decimal) === null) {
+          $(".main").append($(document.activeElement).html());
+          minorArray.push($(document.activeElement).html());
+        }
+    //if button is CE 
+    } else if ($(document.activeElement).html().match("CE")) {
+        //multiple operator and last character is operator
+        if ($(".minor").html().match(operators) !== null && $(".minor").html().match(operators).length > 1 && $(".minor").html()[$(".minor").html().length-1].match(operators)) {
+          $(".main").html("0");
+          minorArray.pop();
+        //multiple operators and last character is digit, delete entire number
+        } else if ($(".minor").html().match(operators) !== null && $(".minor").html().match(operators).length > 1 && $(".minor").html()[$(".minor").html().length-1].match(digits)) {
+            //loop through and delete all digits, stop at operator
+            $(".main").html("0");
+            for (i=minorArray.length-1;i>=0;i--) {
+              if (minorArray[i].match(digits)) {
+                  minorArray.pop();
+              } else {
+              break;
+              }
+          }
+        //single operator and last character is operator
+        } else if ($(".minor").html().match(operators) !== null && $(".minor").html().match(operators).length === 1 && $(".minor").html()[$(".minor").html().length-1].match(operators)) {         
+          $(".main").html("0");
+          minorArray.pop();
+        //single operator and last character is digit
+        } else if ($(".minor").html().match(operators) !== null && $(".minor").html().match(operators).length === 1 && $(".minor").html()[$(".minor").html().length-1].match(digits)) {
+            //loop through and delete all digits, stop at operator
+            $(".main").html("0");
+            for (i=minorArray.length-1;i>=0;i--) {
+              if (minorArray[i].match(digits)) {
+                  minorArray.pop();
+              } else {
+              break;
+              }
+            }
+        //no operators at all
+        } else if ($(".minor").html().match(operators) === null) {
+          $(".main").html("0");
+          minorArray = [];
+        }
+    //if equal button 
+    } else if ($(document.activeElement).html().match("=")) {
+        //if last character is an operator, do nothing
+        if (minorArray[minorArray.length-1].match(operators)) {
+            var x = 3;
+        //if no operator at all, do nothing
+        } else if (minorArray.join('').match(operators) === null) {
+            var x = 5;
+        } else {
+          //change main output to result
+          $(".main").html(Math.round(calculate($(".minor").html())*100)/100);
+          //minorArray will just hold the result as only value
+          minorArray.push("=");
+          minorArray.push(Math.round(calculate($(".minor").html())*100)/100);
+        }
+    }
+      
+  minorArray.length < 1 ? $(".minor").html('0') : $(".minor").html(minorArray.join('')); 
+      
+  });    
+//end button click function 
+    
+$('.ac').click(function() {
+    $(".main").html("0");
+    $(".minor").html("0");
+    minorArray = [];
+}) 
+
+}); 
+//end document ready function 
+    
+</script>  
+</head>
+
+<body>	
+  <div class="container-fluid row">
+    <div class="jumbotron col-lg-4 offset-lg-4">
+      <div class="title text-center">ELECTRONIC CALCULATOR</div>    
+        
+      <div class="output col-lg-12 text-center">
+        <h1 class="main text-right" style="margin-bottom: -3px">0</h1>
+        <h6 class="minor text-right" style="color:grey; margin-right:3px;">0</h6> 
+      </div>    
+        
+      <div class="buttons">
+        <button class="btn col-lg-2 ac">AC</button> 
+        <button class="btn col-lg-2 ce">CE</button> 
+        <button class="btn col-lg-2 divide">÷</button>
+        <button class="btn col-lg-2 multiply">×</button>
+        <button class="btn col-lg-2 7">7</button>  
+        <button class="btn col-lg-2 8">8</button> 
+        <button class="btn col-lg-2 9">9</button> 
+        <button class="btn col-lg-2 subtract">-</button>
+        <button class="btn col-lg-2 4">4</button>  
+        <button class="btn col-lg-2 5">5</button>  
+        <button class="btn col-lg-2 6">6</button> 
+        <button class="btn col-lg-2 add">+</button>
+        <button class="btn col-lg-2 1">1</button>  
+        <button class="btn col-lg-2 2">2</button>  
+        <button class="btn col-lg-2 3">3</button>  
+        <button class="btn col-lg-2 equal">=</button>
+        <button class="btn 0 zero">0</button> 
+        <button class="btn col-lg-2 decimal">.</button> 
+      </div>
+        
+    </div>
+  </div>
+    
+</body>
+</html>
